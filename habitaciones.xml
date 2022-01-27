@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<habitaciones>
+  <habitacion numHabitacion="301" preciodia="20">
+    <codHotel>H10</codHotel>
+    <estancias>
+      <cliente fechaInicio="10-01-2022" fechaFin="15-15-2023">Andrés</cliente>
+      <cliente fechaInicio="18-09-2020" fechaFin="30-01-2023">Juan</cliente>
+      <cliente fechaInicio="sdsa" fechaFin="dasdas">dasd</cliente>
+      <cliente fechaInicio="hfg" fechaFin="ghf">hg</cliente>
+      <cliente fechaInicio="sfddsf" fechaFin="sdfsdf">dsfs</cliente>
+    </estancias>
+  </habitacion>
+</habitaciones>
