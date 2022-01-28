@@ -2,6 +2,7 @@ package aed.proyectoficheros;
 
 import java.io.Serial;
 import java.io.Serializable;
+import java.util.Objects;
 
 public class Habitacion implements Serializable {
     @Serial
@@ -22,6 +23,19 @@ public class Habitacion implements Serializable {
         this.capacidad = capacidad;
         this.preciodia = preciodia;
         this.activa = activa;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Habitacion that = (Habitacion) o;
+        return codHabitacion == that.codHabitacion && capacidad == that.capacidad && preciodia == that.preciodia && activa == that.activa && Objects.equals(codigohotel, that.codigohotel) && Objects.equals(numerohabitacion, that.numerohabitacion);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(codigohotel, numerohabitacion, codHabitacion, capacidad, preciodia, activa);
     }
 
     public String getCodigohotel() {

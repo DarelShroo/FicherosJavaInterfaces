@@ -1,5 +1,7 @@
 package aed.proyectoficheros;
 
+import java.util.Objects;
+
 public class Estancias {
     String fechaInicio;
     String fechaFin;
@@ -9,6 +11,19 @@ public class Estancias {
         this.fechaInicio = fechaInicio;
         this.fechaFin = fechaFin;
         this.nombre = nombre;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Estancias estancias = (Estancias) o;
+        return Objects.equals(fechaInicio, estancias.fechaInicio) && Objects.equals(fechaFin, estancias.fechaFin) && Objects.equals(nombre, estancias.nombre);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(fechaInicio, fechaFin, nombre);
     }
 
     public String getFechaInicio() {

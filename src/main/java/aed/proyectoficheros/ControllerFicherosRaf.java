@@ -107,80 +107,84 @@ public class ControllerFicherosRaf implements Initializable {
         int capacidad = Integer.parseInt(this.lblNumCapacidad.getText());
         int preciodia = Integer.parseInt(this.lblPreciodia.getText());
         boolean activa = Boolean.parseBoolean(this.select);
-        if(codigoHotel.length() < 4 && codigoHotel.length()>0){
+        if (codigoHotel.length() < 4 ) {
             Avisos.warningDialog("Aviso", "longitud menor", "la longitud de codigoHotel debe ser de 4 caracteres");
-        }
+        } else if (numeroHabitacion.length() < 6) {
+            Avisos.warningDialog("Aviso", "longitud menor", "la longitud de numeroHabitacion debe ser de 6 caracteres");
+        } else {
+            Habitacion nuevaHabitacion = new Habitacion();
+            try {
 
+                nuevaHabitacion = new Habitacion(codigoHotel, numeroHabitacion, capacidad, preciodia, activa);
 
-        Habitacion nuevaHabitacion = new Habitacion();
-        try {
+                if (habitaciones.contains(nuevaHabitacion)) {
+                    Avisos.warningDialog("Aviso", "Habitacion ya existente", "Esta habitación ya existe en la lista");
+                } else {
+                    habitaciones.add(nuevaHabitacion);
+                    this.tblHabitaciones.setItems(habitaciones);
 
-            nuevaHabitacion = new Habitacion(codigoHotel, numeroHabitacion, capacidad, preciodia, activa);
-
-            if (habitaciones.contains(nuevaHabitacion)) {
-                System.out.println("Esta habitación ya existe");
-            } else {
-                habitaciones.add(nuevaHabitacion);
-                System.out.println("Se a agregado una nueva habitación");
+                    this.lblCodHotel.setText("");
+                    this.lblNumHabitacion.setText("");
+                    this.lblNumCapacidad.setText("");
+                    this.lblPreciodia.setText("");
+                    this.rdBtnFalse.setSelected(true);
+                }
+            } catch (NumberFormatException e) {
+                Avisos.warningDialog("Aviso", "Numero no válido", "A ocurrido un error, hay letras donde deberían haber números");
+            } catch (RuntimeException e) {
+               // Avisos.errorDialog("Error", "Error en tiempo de ejecución", "A ocurrido un error en tiempo de ejecución");
             }
-
-            this.tblHabitaciones.setItems(habitaciones);
-
-            this.lblCodHotel.setText("");
-            this.lblNumHabitacion.setText("");
-            this.lblNumCapacidad.setText("");
-            this.lblPreciodia.setText("");
-            this.rdBtnFalse.setSelected(true);
-        } catch (NumberFormatException e) {
-            Avisos.warningDialog("Aviso", "Numero no válido", "A ocurrido un error, hay letras donde deberían haber números");
-        } catch (RuntimeException e) {
-            Avisos.errorDialog("Error", "Error en tiempo de ejecución", "A ocurrido un error en tiempo de ejecución");
         }
     }
 
     @FXML
     void onActionGuardar(ActionEvent event) {
         int posSeek = ((ultimoIndice()) * 33);
+        System.out.println(posSeek);
         int indice = ultimoIndice() + 1;
 
-        try (RandomAccessFile raf = new RandomAccessFile(this.lblRuta.getText(), "rw")) {
-            for (Habitacion habitacion : habitaciones) {
-                raf.seek(posSeek);
-                //4
-                raf.writeInt(habitacion.setCodHabitacion(indice));
+        if(new File(this.lblRuta.getText()).exists() && new File(this.lblRuta.getText()).isFile()){
+            try (RandomAccessFile raf = new RandomAccessFile(this.lblRuta.getText(), "rw")) {
+                for (Habitacion habitacion : habitaciones) {
+                    raf.seek(posSeek);
+                    //4
+                    raf.writeInt(indice);
 
-                //12
-                StringBuffer sb = new StringBuffer(habitacion.getCodigohotel());
-                sb.setLength(6);
-                raf.writeChars(sb.toString());
+                    //12
+                    StringBuffer sb = new StringBuffer(habitacion.getCodigohotel());
+                    sb.setLength(6);
+                    raf.writeChars(sb.toString());
 
-                //8
-                StringBuffer sb2 = new StringBuffer(habitacion.getNumerohabitacion());
-                sb2.setLength(4);
-                raf.writeChars(sb2.toString());
+                    //8
+                    StringBuffer sb2 = new StringBuffer(habitacion.getNumerohabitacion());
+                    sb2.setLength(4);
+                    raf.writeChars(sb2.toString());
 
-                //4*2 = 8
-                raf.writeInt(habitacion.getCapacidad());
-                raf.writeInt(habitacion.getPreciodia());
+                    //4*2 = 8
+                    raf.writeInt(habitacion.getCapacidad());
+                    raf.writeInt(habitacion.getPreciodia());
 
-                //1
-                raf.writeBoolean(habitacion.isActiva());
+                    //1
+                    raf.writeBoolean(habitacion.isActiva());
 
-                //int = 4
-                //String 2 x Caracter
-                //Double 8
-                //Boolean 1
-                //char 2
+                    //int = 4
+                    //String 2 x Caracter
+                    //Double 8
+                    //Boolean 1
+                    //char 2
 
-                //1+20+4
-                indice++;
+                    //1+20+4
+                    indice++;
+                }
+
+                this.habitaciones.clear();
+
+                this.onActionVisualizar(event);
+            } catch (IOException e) {
+               // Avisos.errorDialog("Error", "Error en tiempo de ejecución", "A ocurrido un error en tiempo de ejecución, al intentar guardar el documento. Comprueba la ruta");
             }
-
-            this.habitaciones.clear();
-
-            this.onActionVisualizar(event);
-        } catch (IOException e) {
-            Avisos.errorDialog("Error", "Error en tiempo de ejecución", "A ocurrido un error en tiempo de ejecución, al intentar guardar el documento. Comprueba la ruta");
+        }else {
+          // Avisos.errorDialog("Error", "Documento inexistente", "El documento no existe, debes crearlo. O quizás sea la ruta hacia una carpeta y no un fichero.");
         }
     }
 
@@ -195,12 +199,13 @@ public class ControllerFicherosRaf implements Initializable {
             raf.writeInt(nuevoPreciodia);
 
             raf.seek(posicionPreciodia);
-
             if (raf.readInt() == Integer.parseInt(this.lblPreciodiaMod.getText())) {
                 Avisos.informationDialog("Confirmación", "Precio modificado", "Se han modificado los datos, precio actualizado");
             } else {
                 Avisos.warningDialog("Aviso", "No modificado", "El archivo que trata de modificar no se a actualizado con los nuevos datos");
             }
+
+            onActionVisualizar(new ActionEvent());
 
         } catch (EOFException | NumberFormatException | FileNotFoundException ignored) {
             if (ignored.getLocalizedMessage().equals("NumberFormatException")) {
@@ -211,7 +216,7 @@ public class ControllerFicherosRaf implements Initializable {
                 Avisos.errorDialog("Error", "Error en tiempo de ejecución", "A ocurrido un error en tiempo de ejecución");
             }
         } catch (IOException e) {
-            Avisos.errorDialog("Error", "Error en tiempo de ejecución", "A ocurrido un error en tiempo de ejecución");
+            //Avisos.errorDialog("Error", "Error en tiempo de ejecución", "A ocurrido un error en tiempo de ejecución");
         }
     }
 
@@ -220,28 +225,30 @@ public class ControllerFicherosRaf implements Initializable {
         int aux = 1;
         int miIndiceFinal = 0;
         int posicionPreciodia = 0;
-        if (indice == 0) {
-            posicionPreciodia = 24;
-        } else {
+
+        if(indice > 1) {
             try (RandomAccessFile raf = new RandomAccessFile(this.lblRuta.getText(), "rw")) {
                 //12+8+2+2+1
+                raf.seek(indicePosicionesSeeker);
                 while (indice != miIndiceFinal) {
-                    raf.seek(indicePosicionesSeeker);
                     indice = raf.readInt();
                     if (indice == (aux++)) {
                         miIndiceFinal++;
                     }
                     indicePosicionesSeeker += 33;
                 }
+
             } catch (EOFException | NumberFormatException e) {
                 Avisos.errorDialog("Error", "Error numero no válido", "Este numero de indice no es válido");
             } catch (IOException e) {
-                Avisos.errorDialog("Error", "Error en tiempo de ejecución", "A ocurrido un error en tiempo de ejecución");
+                //Avisos.errorDialog("Error", "Error en tiempo de ejecución", "A ocurrido un error en tiempo de ejecución");
             }
-        }
 
+            posicionPreciodia = (33 * miIndiceFinal) + 24;
+        }else {
+            posicionPreciodia = 24;
+        }
         //Encontrar posición preciodia a modificar.
-        posicionPreciodia = (33 * miIndiceFinal) + 24;
         return posicionPreciodia;
     }
 
@@ -287,7 +294,7 @@ public class ControllerFicherosRaf implements Initializable {
             } catch (StringIndexOutOfBoundsException ignored) {
             }
         } catch (IOException e) {
-            Avisos.errorDialog("Error", "Error en tiempo de ejecución", "A ocurrido un error en tiempo de ejecución comprueba la ruta.");
+            //Avisos.errorDialog("Error", "Error en tiempo de ejecución", "A ocurrido un error en tiempo de ejecución comprueba la ruta.");
         }
     }
 
@@ -298,11 +305,9 @@ public class ControllerFicherosRaf implements Initializable {
 
     @FXML
     void onActionCrearNuevoDoc(ActionEvent event) throws IOException {
-        int posSeek = 0;
         int indice = 1;
 
         try (RandomAccessFile raf = new RandomAccessFile(this.lblRuta.getText(), "rw")) {
-            raf.seek(posSeek);
             for (Habitacion habitacion : habitaciones) {
                 //4
                 raf.writeInt(habitacion.setCodHabitacion(indice));
@@ -331,7 +336,6 @@ public class ControllerFicherosRaf implements Initializable {
                 //char 2
 
                 //1+20+4
-                posSeek += 33;
                 indice++;
             }
 
@@ -339,7 +343,7 @@ public class ControllerFicherosRaf implements Initializable {
 
             this.onActionVisualizar(event);
         } catch (IOException e) {
-            Avisos.errorDialog("Error", "Error en tiempo de ejecución", "A ocurrido un error en tiempo de ejecución comprueba la ruta.");
+            //Avisos.errorDialog("Error", "Error en tiempo de ejecución", "A ocurrido un error en tiempo de ejecución comprueba la ruta.");
         }
 
     }
@@ -372,7 +376,7 @@ public class ControllerFicherosRaf implements Initializable {
             //Set de la ruta por defecto en label
             lblRuta.setText(miDir.getCanonicalPath() + "\\habitacion.dat");
         } catch (IOException e) {
-            Avisos.errorDialog("Error", "Error en tiempo de ejecución", "A ocurrido un error en tiempo de ejecución comprueba la ruta.");
+            //Avisos.errorDialog("Error", "Error en tiempo de ejecución", "A ocurrido un error en tiempo de ejecución comprueba la ruta.");
         }
     }
 
@@ -392,12 +396,10 @@ public class ControllerFicherosRaf implements Initializable {
                 }
                 indicePosicionesSeeker += 33;
             }
-        } catch (EOFException e) {
-            Avisos.errorDialog("Error", "Error en tiempo de ejecución", "A ocurrido un error en tiempo de ejecución comprueba la ruta.");
         } catch (FileNotFoundException e) {
             Avisos.errorDialog("Warning", "Archivo no encontrado", "A ocurrido un error al intentar leer el documento, comprueba la ruta.");
         } catch (IOException e) {
-            Avisos.errorDialog("Error", "Error en tiempo de ejecución", "A ocurrido un error en tiempo de ejecución comprueba la ruta.");
+            //Avisos.errorDialog("Error", "Error en tiempo de ejecución", "A ocurrido un error en tiempo de ejecución comprueba la ruta.");
         }
         return aux;
     }
